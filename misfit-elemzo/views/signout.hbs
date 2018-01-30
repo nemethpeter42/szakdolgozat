@@ -1,0 +1,39 @@
+<script>
+	var setEmail = (val) => {
+		$('#email').val(val)
+		$('#email-selected').text(val)
+	}
+	var emails = JSON.parse('{{json emails}}'.split('\n').join('\\n').replace(/&quot;/g,'"'))
+   $(function() {
+		if (emails.length>0){
+			setEmail(emails[0].email)
+		}
+	})
+</script>
+<form class='form-horizontal' id='form1' name='form1' method='post'>
+	<fieldset>
+		<p><b>E-mail:</b></p>
+		<div class='dropdown'  id='email-select'>
+			<a aria-expanded='false' href='#' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>
+				<span id='email-selected'></span>
+				<span class='caret'></span>
+			</a>
+			<ul class='dropdown-menu' id='email-select'>
+				{{#each emails}}
+					<li>
+						<a onclick='setEmail("{{this.email}}")'>
+							{{this.email}}
+						</a>
+					</li>
+				{{/each}}
+			</ul>
+			<input type='text' name='email' id='email' style='display:none' />
+		</div>
+		<div style='padding-top:20px'></div>
+		<p>
+			<label>
+				<input type='submit' name='submit' id='submit' class='btn btn-default' value='Kijelentkeztetés' />
+			</label>
+		</p>
+	</fieldset>
+</form>        

@@ -1,0 +1,1 @@
+ffmpeg -i myfrapsbgr24video.avi -strict -2 -pix_fmt yuvj420p -vcodec libx264 -acodec aac -f mp4 mymp4output.mp4

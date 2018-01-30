@@ -1,0 +1,25 @@
+{
+  "name": "misfit-elemzo",
+  "version": "1.0.0",
+  "description": "Keretrendszer paciensek aktivitasi adatainak gyujtesere es feldolgozasara",
+  "author": "Nemeth Peter",
+  "dependencies": {
+    "body-parser": "^1.17.0",
+    "cookie-parser": "^1.4.3",
+    "errorhandler": "^1.5.0",
+    "express": "^4.15.0",
+    "express-session": "^1.15.2",
+    "hbs": "^4.0.1",
+    "jquery": "^3.2.1",
+    "jsdom": "^11.3.0",
+    "morgan": "^1.8.1",
+    "papaparse": "^4.1.4",
+    "query-string": "^5.0.1"
+  },
+  "contributors": [
+    {
+      "name": "Nemeth Peter",
+      "email": "nemeth.peter.42@gmail.com"
+    }
+  ]
+}

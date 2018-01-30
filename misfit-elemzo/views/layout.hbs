@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Misfit elemző</title>
+	<script src="./public/jquery-1.12.1.min.js"></script>
+	<link rel="stylesheet" href="./public/bootstrap.min.css">
+	<script src="./public/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="./public/bootstrap-select.min.css">
+	<script src="./public/bootstrap-select.min.js"></script>
+	<script src="./public/Chart.bundle.js"></script>
+	<script src="./public/bootstrap-datepicker.min.js"></script>
+	<link rel="stylesheet" href="./public/bootstrap-datepicker.mod.min.css">
+	<script src="./public/papaparse.min.js"></script>
+	<style>
+		.modal-dialog{
+			 overflow-y: initial !important
+		}
+		.modal-body{
+			height: 250px;
+			overflow-y: auto;
+		}
+		/*.datepicker {
+			background-color: #fff ;
+			color: #333 ;
+		}*/
+	</style>
+</head>
+<body>
+	<nav class="navbar navbar-default">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+					<span class="sr-only">Menü</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<p class="navbar-brand" href="#">Misfit elemző</p>
+			</div>
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav navbar-left">
+					{{#if loggedIn}}
+					<li><a href="/account/signin">Belépés</a></li>
+					<li><a href="/account/reg">Regisztráció</a></li>
+					<li><a href="/account/signout">Kilép</a></li>
+					<li><a href="/profile">Profil</a></li>
+					<li><a href="/statistics/selectable">Statisztikák</a></li>
+					<li><a href="/download/selectable">Adatok letöltése</a></li>
+					{{else}}
+					<li><a href="/account/signin">Belépés</a></li>
+					<li><a href="/account/reg">Regisztráció</a></li>
+					<li class="disabled"><a>Kilép</a></li>
+					<li class="disabled"><a>Profil</a></li>
+					<li class="disabled"><a>Statisztikák</a></li>
+					<li class="disabled"><a>Adatok letöltése</a></li>
+					{{/if}}
+				</ul>
+					
+			</div>
+		</div>
+	</nav>
+	{{{body}}}
+</body>
+</html>

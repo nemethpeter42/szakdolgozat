@@ -1,0 +1,126 @@
+<script>
+	$(function() {
+		$('#start_date').datepicker({
+			todayHighlight: true,
+		})
+		$('#end_date').datepicker({
+			todayHighlight: true,
+		})
+		setEmail(selectedEmail)
+	})
+</script>
+<ul class='nav nav-tabs'>
+  {{#if selectable}}
+  <li class='active'><a href='/download/selectable'>Választható</a></li>
+  <li><a href='/download/complex'>Összetett</a></li>
+  {{else}}
+  <li><a href='/download/selectable'>Választható</a></li>
+  <li class='active'><a href='/download/complex'>Összetett</a></li>
+  {{/if}}
+</ul>
+<form class='form-horizontal' id='form1' name='form1' method='post'>
+	<fieldset>
+		<p>Töltse ki az űrlapot, majd nyomja meg a Küldés gombot!</p>
+		{{#if selectable}}
+		<p><b>E-mail:</b></p>
+		<div class='dropdown'>
+			<a aria-expanded='false' href='#' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>
+				<span id='email-selected'></span>
+				<span class='caret'></span>
+			</a>
+			<ul class='dropdown-menu' id='email-select'>
+				{{#each emails}}
+					<li>
+						<a onclick='setEmail("{{this}}")'>
+							{{this}}
+						</a>
+					</li>
+				{{/each}}
+			</ul>
+			<input type='text' name='email' id='email' style='display:none' />
+		</div>
+		<div style='padding-top:20px'></div>
+		{{/if}}
+		<div><b>Első nap:</b>
+			<input type='text' name='start_date' id='start_date' value='{{start_date}}' placeholder='Adja meg az első napot' />
+		</div>
+		<p style='margin-bottom:12pt'></p>
+		<p><b>Utolsó nap:</b>
+			<input type='text' name='end_date' value='{{end_date}}' id='end_date' placeholder='Adja meg az utolsó napot' />
+			<a onclick='maiNap("#end_date")' class='btn btn-default'>Mai nap</a>
+		</p>
+		<div>
+			<input type='submit' name='submit' id='submit' class='btn btn-primary' value='Küldés' />
+		</div>
+	</fieldset>
+</form>
+
+<script>
+	
+	var selectedEmail = '{{selectedEmail}}';
+	var sendFile = {{sendFile}};
+	if(sendFile===true){
+		var misfitData=JSON.parse('{{misfitData}}'.replace(/&quot;/g,'"'))
+		var misfit=JSON.parse('{{misfit}}')
+		
+		var comments = JSON.parse('{{json comments}}'.split('\n').join('\\n').replace(/&quot;/g,'"'))
+		comments.forEach(e => e.content = e.content.split('\n').join('\\n'))
+		
+		function download(filename, text) {
+			var element = document.createElement('a');
+			element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+			element.setAttribute('download', filename);
+			element.style.display = 'none';
+			document.body.appendChild(element);
+			element.click();
+			document.body.removeChild(element);
+		}
+		var collectedData = []
+		if (misfit){
+			misfitData.sessions.forEach(e => {
+				e.table='misfit-sessions'
+			})
+			collectedData = collectedData.concat(misfitData.sessions)
+			misfitData.summary.forEach(e => {
+				e.table='misfit-summary'
+			})
+			collectedData = collectedData.concat(misfitData.summary)
+			misfitData.sleeps.forEach(e => {
+				e.table='misfit-sleeps'
+			})
+			collectedData = collectedData.concat(misfitData.sleeps)
+			comments.forEach(e => {
+				e.table='comments'
+			})
+			collectedData = collectedData.concat(comments)
+		}
+		
+		var keys = new Set()
+		collectedData.forEach(e => {
+			Object.keys(e).forEach(key => keys.add(key))
+		})
+		collectedData.forEach(e => {
+			keys.forEach(key => {
+				if (e[key]===undefined){
+					e[key]=undefined
+				}
+			})
+		})
+
+		var csvMixed = Papa.unparse(collectedData)
+		download('data.csv', csvMixed);
+	}
+
+	var maiNap = function(target){
+		var now = new Date()
+		var day = ('0' + now.getDate()).slice(-2)
+		var month = ('0' + (now.getMonth() + 1)).slice(-2)
+		var today = (month)+'/'+(day)+'/'+now.getFullYear()
+		$(target).val(today)
+	}
+
+	var setEmail = (val) => {
+		$('#email').val(val)
+		$('#email-selected').text(val)
+	}
+</script>

@@ -1,0 +1,1 @@
+{"users":[{"email":"eh14@cnl.elte.hu","password":{"misfit":"******"}},{"email":"eh18@cnl.elte.hu","password":{"misfit":"******"}}],"start_date":"2016-08-20","end_date":"2016-08-25"}

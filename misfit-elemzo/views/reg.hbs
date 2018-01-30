@@ -1,0 +1,56 @@
+<script>
+   $(() => {
+		$('#typeMisfit').click(() => {
+			$('#passwordMisfit').toggle(this.checked)
+		})
+	})
+	window.onload = () => {
+		$('#typeMisfit').prop('checked',true)
+	}
+	
+	var mySubmit = () => {
+		$('#password').val(
+			JSON.stringify({
+				misfit: $('#passwordMisfit').val()!=='' ? $('#passwordMisfit').val() : undefined,
+			})
+		)
+		var type = []
+		if ( $('#typeMisfit').is(':checked') ){
+			type.push('misfit')
+		}
+		$('#type_').val(JSON.stringify(type))
+		$('#submit').click()
+	}
+</script>
+
+{{#if wrongPassword}}
+<p class='text-danger lead'>Rossz felhasználónév vagy jelszó.</p>
+{{/if}}
+{{#if success}}
+<p class='text-success lead'>Regisztráció sikeres.</p>
+{{/if}}
+{{#if nothingChanged}}
+<p class='text-success lead'>Nem történt változtatás.</p>
+{{/if}}
+<form class='form-horizontal' id='form1' name='form1' method='post'>
+	<fieldset>
+		<p>
+			<input type='text' name='email' id='email' placeholder='e-mail' onkeydown='if (event.keyCode == 13) return false' />
+		</p>
+		<p>
+			<input type='checkbox' id='typeMisfit' checked style='display:none'  />
+			<input type='checkbox' id='typeMisfit_is_now_dummy' checked disabled />
+			Misfit
+		</p>
+		<p>
+			<input type='password' id='passwordMisfit' placeholder='MisFit jelszó' onkeydown='if (event.keyCode == 13) return false' />
+		</p>
+		<p>
+			<input type='text' name='password' id='password' style='display:none' />
+			<input type='text' name='type' id='type_' style='display:none' />
+			<input type='submit' name='submit' id='submit' style='display:none' />
+			<input class='btn btn-primary' onclick='mySubmit()' value='Regisztráció' />
+		</p>
+	</fieldset>
+</form>        
+<hr>

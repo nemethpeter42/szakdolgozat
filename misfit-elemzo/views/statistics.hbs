@@ -1,0 +1,609 @@
+<script>
+	$(function() {
+		$('#start_date').datepicker({
+			todayHighlight: true,
+		})
+		$('#end_date').datepicker({
+			todayHighlight: true,
+		})
+		$('#date-modal').datepicker({
+			todayHighlight: true,
+		})
+		setEmail(selectedEmail)
+		setEmailModal(selectedEmail)
+		refreshComments()
+	})
+</script>
+<div class='modal' id='edit-comment'>
+  <div class='modal-dialog'>
+    <div class='modal-content'>
+      <div class='modal-header'>
+        <button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>
+        <h4 class='modal-title new-comment-mode'>Feljegyzés létrehozása </h4>
+        <h4 class='modal-title edit-comment-mode'>Feljegyzés szerkesztése</h4>
+      </div>
+	
+      <div class='modal-body'>
+			<div class='new-comment-mode'>
+				<p><b>E-mail:</b></p>
+				<div class='dropdown'>
+					<a aria-expanded='false' href='#' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>
+						<span id='email-modal-selected'></span>
+						<span class='caret'></span>
+					</a>
+					<ul class='dropdown-menu'>
+						{{#each emails}}
+							<li>
+								<a onclick='setEmailModal("{{this}}")'>
+									{{this}}
+								</a>
+							</li>
+						{{/each}}
+					</ul>
+					<input type='text' id='email-modal' style='display:none' />
+				</div>
+				<div style='padding-top:10px'></div>
+				<div>
+					<p id='date-modal-wrong-format'><b>Dátum:</b></p>
+					<input type='text' id='date-modal' value='{{start_date}}' placeholder='Adjon meg egy dátumot' />
+				</div>
+				<div style='padding-top:10px'></div>
+			</div>
+			<p id='content-modal-wrong-format'><b>Feljegyzés tartalma:</b></p>
+			<div>
+				<textarea class='form-control' id='content-modal' rows='3'></textarea>
+			</div>
+      </div>
+      <div class='modal-footer'>
+        <button type='button' class='btn btn-primary' onclick='submitComment()'>Mentés</button>
+        <button type='button' class='btn btn-default' data-dismiss='modal'>Bezárás</button>
+      </div>
+    </div>
+  </div>
+</div>
+<ul class='nav nav-tabs'>
+  {{#if selectable}}
+  <li class='active'><a href='/statistics/selectable'>Választható</a></li>
+  <li><a href='/statistics/complex'>Összetett</a></li>
+  {{else}}
+  <li><a href='/statistics/selectable'>Választható</a></li>
+  <li class='active'><a href='/statistics/complex'>Összetett</a></li>
+  {{/if}}
+</ul>
+<form class='form-horizontal' id='form1' name='form1' method='post'>
+	<fieldset>
+		<p>Töltse ki az űrlapot, majd nyomja meg a Küldés gombot!</p>
+		{{#if selectable}}
+		<p><b>E-mail:</b></p>
+		<div class='dropdown'  id='email-select'>
+			<a aria-expanded='false' href='#' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>
+				<span id='email-selected'></span>
+				<span class='caret'></span>
+			</a>
+			<ul class='dropdown-menu'>
+				{{#each emails}}
+					<li>
+						<a onclick='setEmail("{{this}}")'>
+							{{this}}
+						</a>
+					</li>
+				{{/each}}
+			</ul>
+			<input type='text' name='email' id='email' style='display:none' />
+		</div>
+		<div style='padding-top:20px'></div>
+		{{/if}}
+		<div><b id='start-date-wrong-format'>Első nap:</b>
+			<input type='text' name='start_date' id='start_date' value='{{start_date}}' placeholder='Adja meg az első napot' />
+		</div>
+		<p style='margin-bottom:12pt'></p>
+		<p><b id='end-date-wrong-format'>Utolsó nap:</b>
+			<input type='text' name='end_date' value='{{end_date}}' id='end_date' placeholder='Adja meg az utolsó napot' />
+			<a onclick='maiNap("#end_date")' class='btn btn-default'>Mai nap</a>
+		</p>
+		<div>
+			<button type='button' class='btn btn-primary' onclick='submitForm()'>Küldés</button>
+			<div style='visibility:hidden'>
+				<button type='submit' name='submit' id='submit' class='btn btn-primary'><button/>
+			</div>
+		</div>
+	</fieldset>
+</form>
+<p><b>Mozgási adatok:</b></p>
+<div class='btn-group'>
+	<a aria-expanded='false' href='#' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>
+		Mértékegység
+		<span class='caret'></span>
+	</a>
+	<ul class='dropdown-menu'>
+		<li><a onclick='trigMisfitSessions("points")'>Pontok</a></li>
+		<li><a onclick='trigMisfitSessions("steps")'>Lépések</a></li>
+		<li><a onclick='trigMisfitSessions("calories")'>Kalóriák</a></li>
+		<li><a onclick='trigMisfitSessions("distance")'>Megtett távolság (km)</a></li>
+	</ul>
+</div>	
+<canvas id='misfit-sessions' width='500' height='350'></canvas>
+
+<p><b>Napi összefoglalók:</b></p>
+<div class='btn-group'>
+	<a aria-expanded='false' href='#' class='btn btn-default dropdown-toggle' data-toggle='dropdown'>
+		  Mértékegység
+		  <span class='caret'></span>
+	 </a>
+	<ul class='dropdown-menu'>
+		<li><a onclick='trigMisfitSummary("points")'>Pontok</a></li>
+		<li><a onclick='trigMisfitSummary("steps")'>Lépések</a></li>
+		<li><a onclick='trigMisfitSummary("calories")'>Kalóriák</a></li>
+		<li><a onclick='trigMisfitSummary("activityCalories")'>Kalóriák (tevékenységeknél)</a></li>
+		<li><a onclick='trigMisfitSummary("distance")'>Megtett távolság (km)</a></li>
+	</ul>
+</div>	
+<canvas id='misfit-summary' width='500' height='350'></canvas>
+
+<p><b>Alvás:</b></p>	
+<canvas id='misfit-sleeps' width='500' height='350'></canvas>
+
+<p><b>Feljegyzések:</b></p>
+<div id='cmnt-zone'></div>
+<div class='panel panel-warning' id='cmnt-template' style='display:none'>
+	<div class='panel-heading'>
+		<b class='cmnt'>???date??? - ???email???</b>
+		&nbsp;&nbsp;&nbsp;
+		<a class='btn btn-sm btn-info cmnt' onclick='editComment("???email???","???date???",???idx???)'>
+			Szerkeszt
+		</a>
+		<a class='btn btn-sm btn-danger cmnt' onclick='removeComment("???email???","???date???",???idx???)'>
+			Töröl
+		</a>
+	</div>
+	<div class='panel-body cmnt'>???content_html???</div>
+</div>
+<div>
+	<a class='btn btn-primary btn-sm' onclick='newComment()'>+ Új</a>
+</div>
+
+<script>
+	var comments = JSON.parse('{{json comments}}'.split('\n').join('\\n').replace(/&quot;/g,'"'))
+	var selectedEmail = '{{selectedEmail}}'
+	var misfitData=JSON.parse('{{misfitData}}'.replace(/&quot;/g,'"'))
+	var misfit=JSON.parse('{{misfit}}')
+	
+	var randomColorFactor = () => {
+		return Math.round(Math.random() * 255)
+	}
+
+	var emails = new Set()
+	if (misfitData){
+		Object.keys(misfitData).forEach(key => {
+			misfitData[key].forEach(e => {
+				emails.add(e.email)
+			})
+		})
+	}
+	
+	var randomColor = () => 'rgba(' + randomColorFactor() + ',' + randomColorFactor() + ',' + randomColorFactor() + ',.7)'
+
+	var userColor = {}
+
+	emails.forEach(e => {
+		userColor[e]={}
+		userColor[e]['bg']=randomColor()
+		userColor[e]['border']=randomColor()
+	})
+
+	var sessionsColor = (email,type,activity) => {
+		if(emails.size===1){	
+			switch(activity.toLowerCase()){
+				case('cycling'):
+					return 'rgba(' + 255 + ',' + 0 + ',' + 0 + ',.7)';
+					break;
+				case('swimming'):
+					return 'rgba(' + 0 + ',' + 255 + ',' + 0 + ',.7)';
+					break;
+				case('walking'):
+					return 'rgba(' + 0 + ',' + 0 + ',' + 255 + ',.7)';
+					break;
+				case('tennis'):
+					return 'rgba(' + 255 + ',' + 102 + ',' + 255 + ',.7)';
+					break;
+				case('basketball'):
+					return 'rgba(' + 255 + ',' + 153 + ',' + 0 + ',.7)';
+					break;
+				case('soccer'):
+					return 'rgba(' + 255 + ',' + 255 + ',' + 0 + ',.7)';
+					break;
+				default:
+					return 'rgba(' + 255 + ',' + 255 + ',' + 255 + ',.7)';
+			}
+		}else{
+			return userColor[email][type]
+		}
+	}
+
+	var summaryColor = (email,type) => {
+		if(emails.size===1){	
+			return randomColor()
+		}else{
+			return userColor[email][type]
+		}
+	}
+	
+	var ctxMisfitSessions = document.getElementById('misfit-sessions').getContext('2d')
+	var ctxMisfitSummary = document.getElementById('misfit-summary').getContext('2d')
+	var ctxMisfitSleeps = document.getElementById('misfit-sleeps').getContext('2d')
+
+	var queryMisfitSessions = measureType => {
+		var data = {datasets:[]};
+		misfitData.sessions.forEach(e => {
+			data.datasets.push({
+				backgroundColor:sessionsColor(e.email,'bg',e.activity),
+				borderColor:randomColor(),
+				data:[{
+					'x':e.timestamp1,
+					'y':e[measureType],
+				},{
+					'x':e.timestamp2,
+					'y':e[measureType],
+				}],
+				label:e.email+'('+e.activity+')',
+			})
+		})
+		return data;
+	}
+	
+	var trigMisfitSessions = measureType => {
+		var seged = m => {
+			if (m==='points') return 'pont';
+			if (m==='steps') return 'lépés';
+			if (m==='calories') return 'kalória';
+			if (m==='activityCalories') return 'kalória';
+			if (m==='distance') return 'km';
+			return 'valami;'
+		}
+		var sessionsChart = new Chart(ctxMisfitSessions, {
+			type: 'line',
+			data: queryMisfitSessions(measureType),
+			options:{
+				responsive: true,
+				title:{
+					display:true,
+					text:'Aktivitási adatok',
+				},
+				legend:{display:false,}
+				,
+				scales: {
+					xAxes: [{
+						type: 'time',
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'időpont',
+						}
+					}],
+					yAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: seged(measureType),
+						}
+					}]
+				}
+			}
+		})
+	}
+
+	var queryMisfitSummary = measureType => {
+		var data = {datasets:[]};
+		misfitData.summary.forEach(e => {
+			data.datasets.push({
+				backgroundColor:misfitSleepsColor(e.email,'bg'),
+				borderColor:misfitSleepsColor(e.email,'border'),
+				data:[{
+					'x':e.timestamp1,
+					'y':e[measureType],
+				},{
+					'x':e.timestamp2,
+					'y':e[measureType],
+				}],
+				label:e.email,
+			})
+		})
+		return data;
+	}
+	
+	var trigMisfitSummary = measureType => {
+		var seged = m => {
+			if (m==='points') return 'pont';
+			if (m==='steps') return 'lépés';
+			if (m==='calories') return 'kalória';
+			if (m==='activityCalories') return 'kalória';
+			if (m==='distance') return 'km';
+			return 'valami;'
+		}
+		var summaryChart = new Chart(ctxMisfitSummary, {
+			type: 'line',
+			data: queryMisfitSummary(measureType),
+			options:{
+				responsive: true,
+				title:{
+					display:true,
+					text:'Napi összefoglalók',
+				},
+				legend:{display:false,}
+				,
+				scales: {
+					xAxes: [{
+						type: 'time',
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'időpont'
+						}
+					}],
+					yAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: seged(measureType),
+						}
+					}]
+				}
+			}
+		})
+	}
+	
+	var misfitSleepsColor = (email,type) => {
+		if(emails.size===1){	
+			return randomColor()
+		}else{
+			return userColor[email][type]
+		}
+	}
+	
+	var misfitSleepLevels = {
+		1: 'éber állapot',	//awake
+		2: 'átlagos alvás',	//sleep
+		3: 'mély alvás',		//deep sleep
+	}
+	
+	var queryMisfitSleeps = () => {
+		var data = {datasets:[]};
+		misfitData.sleeps.forEach(e => {
+			data.datasets.push({
+				backgroundColor:summaryColor(e.email,'bg'),
+				borderColor:summaryColor(e.email,'border'),
+				data:[{
+					'x':e.timestamp1,
+					'y':e['val'],
+				},{
+					'x':e.timestamp2,
+					'y':e['val'],
+				}],
+				label:e.email,
+			})
+		})
+		return data;
+	}
+	
+	var trigMisfitSleeps = () => {
+		var sleepsChart = new Chart(ctxMisfitSleeps, {
+			type: 'line',
+			data: queryMisfitSleeps(),
+			options:{
+				tooltips: {
+					callbacks: {
+						label: (tooltipItem, data) => misfitSleepLevels[tooltipItem.yLabel],
+					},
+				},	
+				responsive: true,
+				title:{
+					display:true,
+					text:'Alvási adatok',
+				},
+				legend:{display:false,}
+				,
+				scales: {
+					xAxes: [{
+						type: 'time',
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'időpont',
+						}
+					}],
+					yAxes: [{
+						display: false,
+						scaleLabel: {
+							display: false,
+							labelString: '',
+						},
+						ticks: {
+							beginAtZero:true
+						},
+					}],
+				}
+			}
+		})
+	}
+	
+	var maiNap = (target) => {
+		var now = new Date()
+		var day = ('0' + now.getDate()).slice(-2)
+		var month = ('0' + (now.getMonth() + 1)).slice(-2)
+		var today = (month)+'/'+(day)+'/'+now.getFullYear() 
+		$(target).val(today)
+	}
+	
+	if(misfit){
+		trigMisfitSessions('steps')
+		trigMisfitSummary('steps')
+		trigMisfitSleeps()
+	}
+	
+	var currentIndex
+	var email2id = (email) => email.split('@').join('-at-').split('.').join('-dot-')
+	var newComment = () => {
+		currentIndex = undefined
+		$('#edit-comment').modal('show')
+		$('.new-comment-mode').show()
+		$('.edit-comment-mode').hide()
+		$('#content-modal').val('')
+	}
+	
+	var editComment = (email,date,idx) => {
+		currentIndex = idx
+		var cmnt = comments.filter(e => e.email===email && e.date===date && e.idx===idx)[0]
+		$('#edit-comment').modal('show')
+		$('.new-comment-mode').hide()
+		$('.edit-comment-mode').show()
+		$('#content-modal').val(cmnt.content)
+	}
+	
+	var removeComment = (email,date,idx) => {
+		$.post('/comments/remove', {
+			email: email,
+			date: date,
+			idx: idx,
+		},
+		function(data, status){
+			if (data.success){
+				var pos
+				for(pos = 0; pos < comments.length; ++pos){
+					var e = comments[pos]
+					if (e.email===email && e.date===date && e.idx===idx){
+						break
+					}
+				}
+				comments.splice(pos,1)
+				//don't forget to decrement indices of
+				//comments on the same day with the same email
+				//if their index is higher
+				comments.forEach(e => {
+					if (e.email===email && e.date===date && e.idx > idx){
+						e.idx=e.idx-1
+					}
+				})
+				refreshComments()
+			}
+		})
+	}
+	
+	var setEmail = (val) => {
+		$('#email').val(val)
+		$('#email-selected').text(val)
+	}
+	
+	var setEmailModal = (val) => {
+		$('#email-modal').val(val)
+		$('#email-modal-selected').text(val)
+	}
+	
+	var submitComment = () => {
+		var timestamp=Date.parse($('#date-modal').val())
+		if (isNaN(timestamp)){
+			$('#date-modal-wrong-format').addClass('text-danger')
+		} else {
+			var dateTmp = new Date($('#date-modal').val())
+			var date = dateTmp.getFullYear() + '-' + (dateTmp.getMonth()+1) + '-' + dateTmp.getDate()
+			var content = $('#content-modal').val()
+			if (content===''){
+				$('#content-modal-wrong-format').addClass('text-danger')
+				return
+			}
+			var email = $('#email-modal').val()
+			$('#date-modal-wrong-format').removeClass('text-danger')
+			$('#content-modal-wrong-format').removeClass('text-danger')
+			// warning: do not modify, zero-value danger
+			if (currentIndex!==undefined){
+				$.post('/comments/edit', {
+					email: email,
+					date: date,
+					idx: currentIndex,
+					content: content,
+				},
+				function(data, status){
+					if (data.success){
+						var cmnt = comments.filter(e => e.email===email && e.date===date && e.idx===currentIndex)[0]
+						cmnt.content = content
+						refreshComments()
+						$('#edit-comment').modal('hide')
+					}
+				})
+			} else {
+				$.post('/comments/new', {
+					email: email,
+					date: date,
+					content: content,
+				},
+				function(data, status){
+					if (data.success){
+						var tagId = 'cmnt-'+email2id(email)+'-'+date+'-'+data.idx
+						var newCmnt = {
+							date:date,
+							email:email,
+							idx:data.idx,
+							content: content,	
+						}
+						comments.push(newCmnt)
+						refreshComments()
+						$('#edit-comment').modal('hide')
+					}
+				})
+			}
+		}
+	}
+	
+	var submitForm = () => {
+		var timestamp = Date.parse($('#start_date').val())
+		if (isNaN(timestamp)){
+			$('#start-date-wrong-format').addClass('text-danger')
+			return
+		}	
+		var timestamp = Date.parse($('#end_date').val())
+		if (isNaN(timestamp)){
+			$('#end-date-wrong-format').addClass('text-danger')
+			return
+		}	
+		$('#start-modal-wrong-format').removeClass('text-danger')
+		$(   '#end-date-wrong-format').removeClass('text-danger')
+		$('#submit').click()
+	}
+	
+	var refreshComments = () => {
+		$('#cmnt-zone').empty()
+		comments.forEach(cmnt => {
+			cmnt.content_html = cmnt.content.split('\n').join('<br />')
+			var cmntTag = 
+				$('#cmnt-template').
+				clone().
+				removeAttr('id').
+				show()
+			Object.keys(cmnt).forEach(elem => {
+				if (cmntTag.get(0).attributes.onclick){
+					cmntTag.get(0).attributes.onclick.value = 
+						cmntTag.
+						get(0).
+						attributes.
+						onclick.
+						value.
+						split('???'+elem+'???').
+						join(cmnt[elem])
+				}
+				cmntTag.html(cmntTag.html().split('???'+elem+'???').join(cmnt[elem]))
+				if (cmntTag.get(0).attributes.value){
+					cmntTag.get(0).attributes.value.value = 
+						cmntTag.
+						get(0).
+						attributes.
+						value.
+						value.
+						split('???'+elem+'???').
+						join(cmnt[elem]).
+						split('\n').
+						join('\\n')
+				}
+			})
+			$('#cmnt-zone').append(cmntTag)
+		})
+	}
+</script>

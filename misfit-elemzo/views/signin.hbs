@@ -1,0 +1,100 @@
+{{#if already}}
+<p class="text-danger lead">Már be van jelentkezve ezen az e-mail címen: {{email}}</p>
+{{/if}}
+{{#if wrongPassword}}
+<p class="text-danger lead">Rossz felhasználónév vagy jelszó.</p>
+{{/if}}
+{{#if accountNotFound}}
+<p class="text-danger lead">A fiók nem létezik.</p>
+{{/if}}
+{{#if badCommand}}
+<p class="text-danger lead">Hibás JSON parancs.</p>
+{{/if}}
+<form class="form-horizontal" id="form1" name="form1" method="post">
+	<fieldset>
+		<p>
+			<input type='text' name='email' id='email' placeholder='e-mail' onkeydown='if (event.keyCode == 13) return false' />
+			<input style='display:none' type='text' name='mode' id='mode' />
+			<a class='btn btn-link' onclick='kuld("normal")'>Belépés</a>
+		</p>
+		<div class="form-group">
+			<div class="col-lg-10">
+				<textarea class="form-control" rows="3" id="json" name="json" placeholder='json parancs'></textarea>
+			</div>
+		</div>
+		<p>
+			<a class='btn btn-link' onclick='kuld("json")'>Parancs végrehajtása</a>
+			<input style='display:none' type="submit" name="submit" id="submit" value="-nem kellene látnod-" />
+		</p>
+	</fieldset>
+</form>        
+<hr>
+<a class='btn btn-link' href='/account/reg'>Regisztráció</a>
+<script>
+{{#if sendFile}}
+	var sendFile = true;
+{{else}}
+	var sendFile = false;
+{{/if}}
+	if(sendFile===true){
+		var misfitData=JSON.parse('{{misfitData}}'.replace(/&quot;/g,'"'))
+		var misfit=JSON.parse('{{misfit}}')
+		
+		var comments = JSON.parse('{{json comments}}'.split('\n').join('\\n').replace(/&quot;/g,'"'))
+		comments.forEach(e => e.content = e.content.split('\n').join('\\n'))
+		
+		function download(filename, text) {
+			var element = document.createElement('a');
+			element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+			element.setAttribute('download', filename);
+			element.style.display = 'none';
+			document.body.appendChild(element);
+			element.click();
+			document.body.removeChild(element);
+		}
+		var collectedData = []
+		if (misfit){
+			misfitData.sessions.forEach(e => {
+				e.table='misfit-sessions'
+			})
+			collectedData = collectedData.concat(misfitData.sessions)
+			misfitData.summary.forEach(e => {
+				e.table='misfit-summary'
+			})
+			collectedData = collectedData.concat(misfitData.summary)
+			misfitData.sleeps.forEach(e => {
+				e.table='misfit-sleeps'
+			})
+			collectedData = collectedData.concat(misfitData.sleeps)
+			comments.forEach(e => {
+				e.table='comments'
+			})
+			collectedData = collectedData.concat(comments)
+		}
+		
+		/*
+			Bugfix for PapaParse, 
+			as it like list of objects with different keys,
+			and so it misses keys from the csv, 
+			which aren't in the first object
+		*/
+		var keys = new Set()
+		collectedData.forEach(e => {
+			Object.keys(e).forEach(key => keys.add(key))
+		})
+		collectedData.forEach(e => {
+			keys.forEach(key => {
+				if (e[key]===undefined){
+					e[key]=undefined
+				}
+			})
+		})
+
+		var csvMixed = Papa.unparse(collectedData)
+		download('data.csv', csvMixed);
+	}
+	var kuld = function(mode){
+		$('#mode').val(mode)
+		$('#submit').click()
+	}
+</script>
